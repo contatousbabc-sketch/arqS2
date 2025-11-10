@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
 # Import the blueprint from the other file
@@ -13,13 +13,13 @@ except ImportError as e:
 
 # Configure basic logging
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
 # Create Flask application
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../dist')
 
 # Enable CORS (Cross-Origin Resource Sharing) for all routes starting with /api/
 # This allows the frontend (running on a different origin) to communicate with the backend.
@@ -40,10 +40,13 @@ if enhanced_workflow_bp:
 else:
     logger.error("❌ Blueprint do workflow não foi carregado. Endpoints da API não estarão disponíveis.")
 
-# A simple root route to check if the server is running
-@app.route('/')
-def index():
-    return "Backend de Predição de IA do Corinthians está rodando."
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, 'index.html')
 
 # A health check endpoint for the API
 @app.route('/api/health')

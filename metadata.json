@@ -1,0 +1,5 @@
+{
+  "name": "Corinthians AI Prediction System",
+  "description": "A fully automated system that uses AI to collect real-time data from the internet (squad, injuries, opponent stats, news) and generate detailed match predictions for Corinthians.",
+  "requestFramePermissions": []
+}

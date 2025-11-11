@@ -36,14 +36,14 @@ def salvar_etapa(nome_etapa: str, dados: Dict, categoria: str = "workflow", sess
         if not session_id:
             logger.warning("session_id não fornecido para salvar_etapa")
             return
-        
+
         caminho_base = os.path.join(BASE_ANALYSIS_PATH, categoria, session_id)
         os.makedirs(caminho_base, exist_ok=True)
-        
+
         arquivo = os.path.join(caminho_base, f"{nome_etapa}.json")
         with open(arquivo, 'w', encoding='utf-8') as f:
             json.dump(dados, f, ensure_ascii=False, indent=2)
-        
+
         logger.info(f"✅ Etapa '{nome_etapa}' salva em {arquivo}")
     except Exception as e:
         logger.error(f"❌ Erro ao salvar etapa '{nome_etapa}': {e}")
@@ -58,29 +58,29 @@ def start_full_workflow():
     try:
         data = request.get_json()
         session_id = generate_session_id()
-        
+
         segmento = data.get('segmento', '').strip()
-        
+
         if not segmento:
             return jsonify({"error": "Segmento é obrigatório"}), 400
-        
+
         context = data.get('context', {})
-        
+
         logger.info(f"🚀 WORKFLOW COMPLETO INICIADO - Sessão: {session_id}")
         logger.info(f"🔍 Segmento: {segmento}")
-        
+
         salvar_etapa("workflow_completo_iniciado", {
             "session_id": session_id,
             "segmento": segmento,
             "context": context,
             "timestamp": datetime.now().isoformat()
         }, categoria="workflow", session_id=session_id)
-        
+
         def execute_full_workflow_thread():
             try:
                 # Simula processamento das etapas
                 time.sleep(2)
-                
+
                 # ETAPA 1: Coleta
                 logger.info(f"📊 ETAPA 1 - Coleta de Dados - Sessão: {session_id}")
                 salvar_etapa("etapa1_concluida_full_workflow", {
@@ -89,7 +89,7 @@ def start_full_workflow():
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
                 time.sleep(2)
-                
+
                 # ETAPA 2: Verificação AI
                 logger.info(f"🤖 ETAPA 2 - Verificação AI - Sessão: {session_id}")
                 salvar_etapa("verificacao_ai_concluida_full_workflow", {
@@ -98,10 +98,10 @@ def start_full_workflow():
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
                 time.sleep(2)
-                
+
                 # ETAPA 3: Síntese
                 logger.info(f"🧠 ETAPA 3 - Síntese - Sessão: {session_id}")
-                
+
                 # Dados de síntese completos para o relatório
                 opponent_name = context.get('opponent', 'adversário')
                 synthesis_data = {
@@ -207,17 +207,17 @@ def start_full_workflow():
                         "summary": f"Investigação profunda confirma favoritismo do Corinthians no confronto contra {opponent_name}. Fatores técnicos, táticos e motivacionais apontam para vitória do Timão."
                     }
                 }
-                
-                salvar_etapa("sintese_master_synthesis", synthesis_data, 
+
+                salvar_etapa("sintese_master_synthesis", synthesis_data,
                            categoria="workflow", session_id=session_id)
-                
+
                 salvar_etapa("etapa3_sintese_concluida_full_workflow", {
                     "session_id": session_id,
                     "synthesis_result": synthesis_data,
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
                 time.sleep(2)
-                
+
                 # ETAPA 4: Geração
                 logger.info(f"📝 ETAPA 4 - Geração de Módulos - Sessão: {session_id}")
                 salvar_etapa("etapa4_geracao_concluida_full_workflow", {
@@ -226,7 +226,7 @@ def start_full_workflow():
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
                 time.sleep(2)
-                
+
                 # ETAPA 5: CPL Devastador
                 logger.info(f"🎯 ETAPA 5 - CPL Devastador - Sessão: {session_id}")
                 salvar_etapa("cpl_devastador_concluido_full_workflow", {
@@ -234,16 +234,16 @@ def start_full_workflow():
                     "cpl_completo": True,
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
-                
+
                 # Conclusão
                 salvar_etapa("workflow_completo_concluido", {
                     "session_id": session_id,
                     "status": "concluido",
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
-                
+
                 logger.info(f"✅ WORKFLOW COMPLETO CONCLUÍDO - Sessão: {session_id}")
-                
+
             except Exception as e:
                 logger.error(f"❌ Erro no workflow completo: {e}")
                 salvar_etapa("workflow_erro", {
@@ -251,10 +251,10 @@ def start_full_workflow():
                     "error": str(e),
                     "timestamp": datetime.now().isoformat()
                 }, categoria="workflow", session_id=session_id)
-        
+
         thread = threading.Thread(target=execute_full_workflow_thread)
         thread.start()
-        
+
         return jsonify({
             "success": True,
             "session_id": session_id,
@@ -262,7 +262,7 @@ def start_full_workflow():
             "estimated_total_duration": "12-25 minutos",
             "status_endpoint": f"/api/workflow/status/{session_id}"
         }), 200
-        
+
     except Exception as e:
         logger.error(f"❌ Erro ao iniciar workflow completo: {e}")
         return jsonify({
@@ -292,47 +292,47 @@ def get_workflow_status(session_id):
             "estimated_remaining": "Calculando...",
             "last_update": datetime.now().isoformat()
         }
-        
+
         # Verifica etapa 1
         if os.path.exists(f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/etapa1_concluida_full_workflow.json"):
             status["step_status"]["step1"] = "completed"
             status["current_step"] = 1
             status["progress_percentage"] = 20
-        
+
         # Verifica etapa 2
         if os.path.exists(f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/verificacao_ai_concluida_full_workflow.json"):
             status["step_status"]["step2"] = "completed"
             status["current_step"] = 2
             status["progress_percentage"] = 40
-        
+
         # Verifica etapa 3
         if os.path.exists(f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/etapa3_sintese_concluida_full_workflow.json"):
             status["step_status"]["step3"] = "completed"
             status["current_step"] = 3
             status["progress_percentage"] = 60
-        
+
         # Verifica etapa 4
         if os.path.exists(f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/etapa4_geracao_concluida_full_workflow.json"):
             status["step_status"]["step4"] = "completed"
             status["current_step"] = 4
             status["progress_percentage"] = 80
-        
+
         # Verifica CPL Devastador
         if os.path.exists(f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/cpl_devastador_concluido_full_workflow.json"):
             status["step_status"]["cpl_devastador"] = "completed"
             status["current_step"] = 5
             status["progress_percentage"] = 100
             status["estimated_remaining"] = "Concluído"
-        
+
         # Verifica erros
         error_file = f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/workflow_erro.json"
         if os.path.exists(error_file):
             with open(error_file, 'r') as f:
                 error_data = json.load(f)
             status["error"] = error_data.get("error", "Erro desconhecido")
-        
+
         return jsonify(status), 200
-        
+
     except Exception as e:
         logger.error(f"❌ Erro ao obter status: {e}")
         return jsonify({
@@ -346,20 +346,20 @@ def get_synthesis_results(session_id):
     """Endpoint para obter os dados da síntese final"""
     try:
         synthesis_file = f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/sintese_master_synthesis.json"
-        
+
         if not os.path.exists(synthesis_file):
             logger.warning(f"Arquivo de síntese não encontrado para sessão {session_id}")
             return jsonify({
                 "error": "Dados de síntese não encontrados",
                 "session_id": session_id
             }), 404
-        
+
         with open(synthesis_file, 'r', encoding='utf-8') as f:
             synthesis_data = json.load(f)
-        
+
         logger.info(f"✅ Dados de síntese retornados para sessão {session_id}")
         return jsonify(synthesis_data), 200
-        
+
     except Exception as e:
         logger.error(f"❌ Erro ao obter dados de síntese: {e}")
         return jsonify({
@@ -378,21 +378,21 @@ def get_workflow_results(session_id):
             "modules_generated": 0,
             "verification_available": False
         }
-        
+
         # Verifica síntese
         synthesis_file = f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/sintese_master_synthesis.json"
         if os.path.exists(synthesis_file):
             results["synthesis_available"] = True
             results["synthesis_path"] = synthesis_file
-        
+
         # Verifica Verificação AI
         verification_file = f"{BASE_ANALYSIS_PATH}/workflow/{session_id}/verificacao_ai_concluida_full_workflow.json"
         if os.path.exists(verification_file):
             results["verification_available"] = True
             results["verification_path"] = verification_file
-        
+
         return jsonify(results), 200
-        
+
     except Exception as e:
         logger.error(f"❌ Erro ao obter resultados: {e}")
         return jsonify({

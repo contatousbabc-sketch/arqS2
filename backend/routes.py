@@ -3,14 +3,6 @@ import os
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Import the blueprint from the other file
-try:
-    from enhanced_workflow_routes import enhanced_workflow_bp
-except ImportError as e:
-    # This helps in debugging if the file is not found or has issues.
-    print(f"Não foi possível importar o blueprint: {e}")
-    enhanced_workflow_bp = None
-
 # Configure basic logging
 logging.basicConfig(
     level=logging.INFO,
@@ -18,8 +10,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Import the blueprint from the other file
+try:
+    from .enhanced_workflow_routes import enhanced_workflow_bp
+except ImportError as e:
+    # This helps in debugging if the file is not found or has issues.
+    logger.error(f"NÃO FOI POSSÍVEL IMPORTAR O BLUEPRINT: {e}", exc_info=True)
+    enhanced_workflow_bp = None
+
 # Create Flask application
-app = Flask(__name__, static_folder='../dist')
+# Use an absolute path for the static folder to avoid issues with the working directory
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'dist'))
 
 # Enable CORS (Cross-Origin Resource Sharing) for all routes starting with /api/
 # This allows the frontend (running on a different origin) to communicate with the backend.
